@@ -2,11 +2,11 @@
  * Control de posicion de un motor BLDC con sensores de efecto hall
  */
 
-#define M1_HA 2// 2
-#define M1_HB 4
-#define M1_DIR 5
-#define M1_EN 7
-#define M1_PWM 11
+#define M1_HA 3// 2
+#define M1_HB 6
+#define M1_DIR 8
+#define M1_EN 9
+#define M1_PWM 10
 
 int16_t M1_counter = 0;
 int16_t ref = 0;
