@@ -2,11 +2,12 @@
 #define DSP_EMA_I32_ALPHA(x) ( (uint16_t)(x * 65535) )
 
 #define LED_PIN 5
-#define msgSize 2
+#define msgSize 3
 
 typedef struct fingerMsg {
   uint8_t cmd;
   uint8_t val;
+  uint8_t val2;
 } fM;
 
 typedef union fingerMsgUnion {
@@ -60,7 +61,7 @@ fingerMsg recvMsg;
 void loop (void)
 {
   if (newMessage) {
-    led_st = recvMsg.val;
+    led_st = recvMsg.val2;
     analogWrite(LED_PIN, led_st);
     newMessage = false;
   }

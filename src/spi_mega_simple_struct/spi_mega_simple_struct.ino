@@ -12,11 +12,12 @@
 
 #define SS1 53 // ss for nano 1
 
-#define msgSize 2
+#define msgSize 3
 
 typedef struct fingerMsg {
   uint8_t cmd;
   uint8_t val;
+  uint8_t val2;
 } fM;
 
 typedef union fingerMsgUnion {
@@ -72,6 +73,7 @@ void loop (void)
     int aux = Serial.parseInt(); // quita el 0 que se lee siempre despues de un parseInt
     Serial.print("in: ");
     msg.val = in;
+    msg.val2 = msg.val;
     Serial.println(msg.val);
     sendMsg(msg, SS1);
   }
