@@ -1,6 +1,3 @@
-
-#define DSP_EMA_I32_ALPHA(x) ( (uint16_t)(x * 65535) )
-
 #define LED_PIN 5
 #define msgSize 3
 
