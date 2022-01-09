@@ -41,6 +41,7 @@ uint8_t m1_int = M1_HA;
 uint8_t m2_int = M2_HA;
 
 int16_t ref1 = 0;
+int16_t ref2 = 0;
 float kp = 3.0;
 int amplitude = 0;
 
@@ -104,11 +105,12 @@ void loop (void)
 {
   if (micros() - t_pos > 1000) { // 1kHz loop
     m1->moveToPosition(ref1);
-    //m2->moveToPosition(ref2);
+    m2->moveToPosition(ref2);
     t_pos = millis();
   }
   if (newMessage) {
     ref1 = recvMsg.val;
+    ref2 = recvMsg.val2;
     //analogWrite(LED_PIN, led_st);
     newMessage = false;
   }
