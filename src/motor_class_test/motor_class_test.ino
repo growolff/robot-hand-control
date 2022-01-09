@@ -67,13 +67,13 @@ void loop() {
     int16_t aux = Serial.parseInt(); // quita el 0 que se lee siempre despues de un parseInt
     }*/
 
-    /*
-     * sweep loop
-     */
+  /*
+     sweep loop
+  */
   if (millis() - t_sweep > 14) { // time delay
     th += 0.04; // step size
-    ref1 = amplitude*sin(th);
-    ref2 = amplitude*cos(th);
+    ref1 = amplitude * sin(th);
+    ref2 = amplitude * cos(th);
     t_sweep = millis();
   }
 
