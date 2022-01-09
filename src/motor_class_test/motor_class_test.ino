@@ -5,17 +5,17 @@
 
 #include <Motor.h>
 
-#define M2_HA 2// 2
-#define M2_HB 9
-#define M2_DIR 5
-#define M2_EN 4
-#define M2_PWM 11
-
-#define M1_HA 3
-#define M1_HB 6
+#define M1_HA 3// 2
+#define M1_HB A3
 #define M1_DIR 7
 #define M1_EN 8
-#define M1_PWM 10
+#define M1_PWM 6
+
+#define M2_HA 2
+#define M2_HB A1
+#define M2_DIR 4
+#define M2_EN A2
+#define M2_PWM 5
 
 int16_t ref = 0;
 int16_t ref1 = 0;

@@ -14,11 +14,13 @@ class Motor
   public:
     Motor(uint8_t ha, uint8_t hb, uint8_t dir, uint8_t en, uint8_t pwm);
     void setupInterruptHandler(void (*ISR)(void));
-    void ha_isr();
-
-    int16_t getPosition();
+    void readCounter(); // isr
+    
+    void setInitPosition(int16_t pos);
     void setPositionPID(float kp, float ki, float kd);
     void moveToPosition(int16_t pos);
+
+    int16_t getPosition();
 
 
   private:

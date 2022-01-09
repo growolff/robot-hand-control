@@ -8,11 +8,7 @@
 #include "Motor.h"
 
 Motor::Motor(uint8_t ha, uint8_t hb, uint8_t dir, uint8_t en, uint8_t pwm)
-: p_ha{p_ha}
-, p_hb{p_hb}
-, p_dir{p_dir}
-, p_en{p_en}
-, p_pwm{p_pwm}
+
 {
   pinMode(ha, INPUT_PULLUP);
   pinMode(hb, INPUT);
@@ -49,6 +45,11 @@ int16_t Motor::getPosition()
   return _counter;
 }
 
+void Motor::setInitPosition(int16_t pos)
+{
+  _counter = pos;
+}
+
 void Motor::moveToPosition(int16_t pos)
 {
   _pos_err = pos - _counter;
@@ -66,8 +67,8 @@ void Motor::moveToPosition(int16_t pos)
   analogWrite(p_pwm, pwm_out);
 }
 
-void Motor::ha_isr()
+void Motor::readCounter()
 {
   _hb = digitalRead(p_hb);
-  _counter += _hb ? -1 : 1;
+  _counter += _hb ? 1 : -1;
 }
