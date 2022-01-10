@@ -19,14 +19,24 @@ from variables import *
 
 from struct import *
 
+import numpy as np
+
 def receiveData(t):
     print("Receiving data from controller...")
     time.sleep(1)
     # CMD ID REF P I D
     s.sendCMD(SEND_DATA_TRUE,1,255,255,0,0) # send data
     time.sleep(t)
-    s.sendCMD(SEND_DATA_FALSE,0,200,100,0,0) # send data
-    time.sleep(t)
+    #s.sendCMD(SEND_DATA_FALSE,0,200,100,0,0) # send data
+    #time.sleep(t)
+
+    a = range(0,260,5)
+    for ref in a:
+        s.sendCMD(SET_POS_REF,0,ref,100,0,0) # send data
+        time.sleep(0.01)
+    for ref in a:
+        s.sendCMD(SET_POS_REF,0,255-ref,100,0,0) # send data
+        time.sleep(0.01)
 
 def main(argv):
     tsleep = int(argv[1])
@@ -42,7 +52,7 @@ def main(argv):
 
 if __name__ == "__main__":
 
-    s = HandSerial(port='COM7')
+    s = HandSerial(port='COM7',baudrate=500000)
     s.startProcess()
     try:
         main(sys.argv[0:])

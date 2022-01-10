@@ -5,7 +5,14 @@
 #define OUT_MSG_LEN 8
 #define IN_MSG_LEN 10
 
+// motor cmds
 #define F_SET_POS_REF         1
+#define SET_FORCE_REF         2
+#define REQ_PID_VALUES        22
+#define SET_PID_VALUES        23
+#define SET_CONTROL_MODE      24
+#define DISABLE_MOTOR         25
+#define ENABLE_MOTOR          26
 #define F_DISABLE_MOTOR       25
 #define F_ENABLE_MOTOR        26
 
@@ -74,14 +81,12 @@ void writePacket(uint8_t cmd, uint8_t motor, int16_t v1, int16_t v2, int16_t v3)
 
 void parseCommand() {
 
-  uint8_t cmd =  RB.msg.cmd;  
-  uint8_t id = RB.msg.id;  
-  uint16_t ref = RB.msg.ref;  
-  uint16_t p = RB.msg.p;  
-  uint16_t i = RB.msg.i;  
-  uint16_t d = RB.msg.d;  
-  
-  led_pwm = ref;
+  uint8_t cmd =  RB.msg.cmd;
+  uint8_t id = RB.msg.id;
+  uint16_t ref = RB.msg.ref;
+  uint16_t p = RB.msg.p;
+  uint16_t i = RB.msg.i;
+  uint16_t d = RB.msg.d;
 
   switch (cmd) {
     case F_SEND_DATA_TRUE:
@@ -89,6 +94,9 @@ void parseCommand() {
       break;
     case F_SEND_DATA_FALSE:
       sendData_st = false;
+      break;
+    case F_SET_POS_REF:
+      led_pwm = ref;
       break;
   }
   // clear data structure
@@ -103,7 +111,7 @@ unsigned long t_write = 0;
 uint16_t write_rate = 1000 / WRITE_RATE_HZ;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(500000);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(LED_PWM, OUTPUT);
 
@@ -113,7 +121,7 @@ void setup() {
 inMsg* recvMsg;
 
 void loop() {
-  
+
   readPacket();
   if (process_it) {
     parseCommand();
@@ -126,10 +134,10 @@ void loop() {
     if(sendData_st == true){
       writePacket(led_pwm, t_write, sendData_st, 2, 3);
     }
-    analogWrite(LED_PWM, led_pwm);
     t_write = millis();
   }
 
+  analogWrite(LED_PWM, led_pwm);
 }
 
 void blinkLed(int t) {
