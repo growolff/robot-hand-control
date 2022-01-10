@@ -46,6 +46,8 @@ class HandSerial(object):
             self.ser.close()
 
     def stopProcess(self):
+        self.ser.flushInput()
+        self.ser.flushOutput()
         self.running = False
 
     def startProcess(self):
