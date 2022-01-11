@@ -150,3 +150,8 @@ void blinkLed(int t) {
   digitalWrite(LED_BUILTIN, LOW);
   delay(t / 2);
 }
+
+void sendCMD(){
+
+  
+}

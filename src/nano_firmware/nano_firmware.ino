@@ -1,19 +1,19 @@
 
 #include <Motor.h>
 
-#define M1_HA 3
-#define M1_HB A3
+#define M1_HA 2
+#define M1_HB A1
 #define M1_DIR 7
 #define M1_EN 8
 #define M1_PWM 6
 
-#define M2_HA 2
-#define M2_HB A1
+#define M2_HA 3
+#define M2_HB A3
 #define M2_DIR 4
 #define M2_EN A2
 #define M2_PWM 5
 
-#define LED_PIN 5
+#define LED_PIN 9
 #define msgSize 3
 
 typedef struct fingerMsg {
@@ -111,7 +111,7 @@ void loop (void)
   if (newMessage) {
     ref1 = recvMsg.val;
     ref2 = recvMsg.val2;
-    //analogWrite(LED_PIN, led_st);
+    analogWrite(LED_PIN, ref1);
     newMessage = false;
   }
   if (process_it)
@@ -127,5 +127,5 @@ void loop (void)
     pos = 0;
     process_it = false;
   }
-  
+
 }  // end of loop
