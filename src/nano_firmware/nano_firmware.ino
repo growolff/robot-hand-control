@@ -103,17 +103,6 @@ fingerMsg recvMsg;
 
 void loop (void)
 {
-  if (micros() - t_pos > 1000) { // 1kHz loop
-    m1->moveToPosition(ref1);
-    m2->moveToPosition(ref2);
-    t_pos = millis();
-  }
-  if (newMessage) {
-    ref1 = recvMsg.val;
-    ref2 = recvMsg.val2;
-    analogWrite(LED_PIN, ref1);
-    newMessage = false;
-  }
   if (process_it)
   {
     buf[pos] = 0;
@@ -127,5 +116,15 @@ void loop (void)
     pos = 0;
     process_it = false;
   }
-
+  if (newMessage) {
+    ref1 = recvMsg.val;
+    ref2 = recvMsg.val2;
+    analogWrite(LED_PIN, ref1);
+    newMessage = false;
+  }
+  if (micros() - t_pos > 1000) { // 1kHz loop
+      m1->moveToPosition(ref1);
+      m2->moveToPosition(ref2);
+      t_pos = micros();
+  }
 }  // end of loop

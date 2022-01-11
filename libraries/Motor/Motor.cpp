@@ -8,7 +8,6 @@
 #include "Motor.h"
 
 Motor::Motor(uint8_t ha, uint8_t hb, uint8_t dir, uint8_t en, uint8_t pwm)
-
 {
   pinMode(ha, INPUT_PULLUP);
   pinMode(hb, INPUT);
@@ -20,6 +19,8 @@ Motor::Motor(uint8_t ha, uint8_t hb, uint8_t dir, uint8_t en, uint8_t pwm)
   p_dir = dir;
   p_en = en;
   p_pwm = pwm;
+
+  iValue = new ILim(2.0,0.001f,255.0); // kI, Ts, Lim
 
   _hb = 0;
   _counter = 0;
@@ -50,10 +51,10 @@ void Motor::setInitPosition(int16_t pos)
   _counter = pos;
 }
 
-void Motor::moveToPosition(int16_t pos)
+void Motor::moveToPosition(int16_t ref)
 {
-  _pos_err = pos - _counter;
-  int16_t pwm_out =  (int16_t) _pos_err * _pkp;
+  _pos_err = ref - _counter;
+  int16_t pwm_out =  (int16_t) _pos_err * _pkp + iValue->update(_pos_err);
 
   if (pwm_out > 255) pwm_out = 255;
   else if (pwm_out < -255) pwm_out = -255;
