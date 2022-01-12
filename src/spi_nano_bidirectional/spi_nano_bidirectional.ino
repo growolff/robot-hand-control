@@ -60,23 +60,30 @@ ISR (SPI_STC_vect)
   byte c = SPDR; // received char
 
   switch (command) {
-    case 0: // si no hay comando el primer byte recibido es el comando
+    case 0: // si no hay comando el primer byte recibido es el comando 0xAA
       command = c;
       SPDR = 0;  // devuelve 0 que no lee nadie
       break;
-    case 0xAA: // si llega este comando primero rellena ref y envia data
+    case 0xAA: // el primer mensaje ref.d1 llega aca
       buf[pos] = c; // rellena el buffer con los datos que lleguen a continuacion
-      SPDR = data.bytes[pos];
+      SPDR = data.bytes[pos]; // devuelve 0 que no lee nadie
+      pos++;
+      //command = 0xBB;
+      break;
+    case 0XBB:
+      buf[pos] = c;
+      SPDR = data.bytes[pos-1];
       pos++;
       break;
   }
   if (pos >= msgSize) {
     process_it  = true;
+    command = 0;
   }
 }  // end of interrupt service routine (ISR) SPI_STC_vect
 
 void loop (void) {
-
+  buf[pos] = 0;
   if (process_it) {
     for (size_t i = 0; i < msgSize; i++)
     {
@@ -86,6 +93,10 @@ void loop (void) {
     pos = 0;
     newMessage = true;
     process_it = false;
+    for (size_t i = 0; i < msgSize; i++)
+    {
+      buf[i] = 0;
+    }
   }
 
   if (newMessage) {
