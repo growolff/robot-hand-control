@@ -88,7 +88,11 @@ void loop (void) {
   }
 
   if (newMessage) {
+<<<<<<< HEAD
     led_st = ref.d1;
+=======
+    led_st = ref.d2;
+>>>>>>> serial_comm
     data.d1 = ref.d1;
     data.d2 = ref.d2;
     data.d3 = ref.d3;
