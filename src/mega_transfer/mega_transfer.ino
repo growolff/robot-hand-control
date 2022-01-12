@@ -19,18 +19,20 @@
 #define LED_PWM 9
 #define WRITE_RATE_HZ 10
 
-#define msgSize 4
-union { // receive data structure
+#define msgSize 6
+union outMsg { // receive data structure
   char bytes[msgSize];
   struct {
     uint8_t d1;
     uint8_t d2;
     uint8_t d3;
     uint8_t d4;
+    uint8_t d5;
+    uint8_t d6;
   };
   struct {
-    uint8_t pos0;
-    uint8_t pos1;
+    int16_t pos0;
+    int16_t pos1;
     uint16_t sensor;
   };
 } data;
@@ -41,6 +43,8 @@ union { // send data structure
       uint8_t d2;
       uint8_t d3;
       uint8_t d4;
+      uint8_t d5;
+      uint8_t d6;
     };
 } ref;
 
@@ -68,7 +72,9 @@ void sendMsg (int ss) {
   data.d1 = transferAndWait(ref.d2);
   data.d2 = transferAndWait(ref.d3);
   data.d3 = transferAndWait(ref.d4);
-  data.d4 = transferAndWait(0xFF);
+  data.d4 = transferAndWait(ref.d5);
+  data.d5 = transferAndWait(ref.d6);
+  data.d6 = transferAndWait(0xFF);
   delay(10);
   digitalWrite(ss, HIGH);
 } // end of sendMsg
@@ -83,11 +89,8 @@ void readPacket() {
   }
 } // end of readPacket
 
-void writePacket(uint8_t pos0, uint8_t pos1, int16_t sensor) {
+void writePacket() {
     int len = sizeof(data.bytes) / sizeof(*data.bytes);
-    data.pos0 = pos0;
-    data.pos1 = pos1;
-    data.sensor = sensor;
     Serial.write(data.bytes, len);
 }
 
@@ -96,12 +99,17 @@ void parseCommand() {
   uint8_t d2 = ref.d2;
   uint8_t d3 = ref.d3;
   uint8_t d4 = ref.d4;
+  uint8_t d5 = ref.d5;
+  uint8_t d6 = ref.d6;
 
   led_pwm = d3;
 
   switch (d1) {
     case TO_SS1:
       sendMsg(SS1);
+      break;
+    case TO_SS2:
+      sendMsg(SS2);
       break;
     case SEND_DATA_TRUE:
       sendData_st = true;
@@ -139,11 +147,8 @@ void setup (void)
   // use 2 Mbps decided by testing. 4 Mbps has too many bit errors over
   // jumper wires. Single-ended signals are not well suited for high-speed over wires
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
-  ref.d1 = 0;
-  ref.d2 = 0;
-  ref.d3 = 0;
-  ref.d4 = 0;
-  sendMsg(SS1); // send first msg
+  //for (size_t i = 0; i < msgSize; i++) { ref.bytes[i] = 0 }
+  //sendMsg(SS1); // send first msg
 
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(LED_PWM, OUTPUT);
@@ -164,7 +169,7 @@ void loop (void)
     digitalWrite(LED_BUILTIN, led_st);
     led_st = !led_st;
     if(sendData_st == true){
-      writePacket(led_pwm, data.pos1, data.sensor);
+      writePacket();
     }
     t_write = millis();
   }

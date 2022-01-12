@@ -20,7 +20,7 @@ SET_POS_REF = 1
 class ManoSerial(object):
 
     # estructura para enviar datos
-    sendStruct = struct.Struct('<BBBB')
+    sendStruct = struct.Struct('<BBBBBB')
     '''
         uint8 s1 -> slave select: SS1, SS2, SS3
         uint8 s2 -> cmd: posRef, tensionRef
@@ -39,14 +39,16 @@ class ManoSerial(object):
         self.thread = Thread(target=self.serialHandlerThread)
 
         # estructura para recibir datos
-        self.recvFmt = '<BBH'
+        self.recvFmt = '<hhh'
 
         self.s1 = 0
         self.s2 = 0
         self.s3 = 0
         self.s4 = 0
+        self.s5 = 0
+        self.s6 = 0
 
-        self.tuple = namedtuple('tuple','d1 d2 d3 d4')
+        self.tuple = namedtuple('tuple','d1 d2 d3 d4 d5 d6')
 
         self.recvMsg = []
         self.r1 = 0
@@ -78,13 +80,15 @@ class ManoSerial(object):
         return ":".join("{:02x}".format(c) for c in data)
 
     def serialize(self,buff):
-        return buff.write(ManoSerial.sendStruct.pack(self.s1,self.s2,self.s3,self.s4))
+        return buff.write(ManoSerial.sendStruct.pack(self.s1,self.s2,self.s3,self.s4,self.s5,self.s6))
 
-    def sendCmd(self,s1=0,s2=0,s3=0,s4=0):
+    def sendCmd(self,s1=0,s2=0,s3=0,s4=0,s5=0,s6=0):
         self.s1 = s1
         self.s2 = s2
         self.s3 = s3
         self.s4 = s4
+        self.s5 = s5
+        self.s6 = s6
         #print(self.s1,self.s2,self.s3,self.s4)
         buff = BytesIO()
         self.serialize(buff)
@@ -93,9 +97,9 @@ class ManoSerial(object):
         #print(packet)
         packet_str = bytes(packet)
         with self.serial_mutex:
-            self.write_serial(packet_str)
+            self.writeSerial(packet_str)
 
-    def write_serial(self, data):
+    def writeSerial(self, data):
         """
         Write in the serial port.
         """
@@ -104,6 +108,9 @@ class ManoSerial(object):
         self.ser.flushOutput()
         self.ser.write(data)
 
+    def getMsg(self):
+        #print(self.recvMsg)
+        return self.recvMsg
 
     def serialHandlerThread(self):
 
@@ -113,10 +120,10 @@ class ManoSerial(object):
                 if self.ser.inWaiting():
                     msg = self.ser.read(recvStructLen)  # show the message as it is
                     self.recvMsg = unpack(self.recvFmt, msg)
-                    self.r1 = self.recvMsg[0]
-                    self.r2 = self.recvMsg[1]
-                    self.r3 = self.recvMsg[2]
-                    print(self.recvMsg)
+                    #self.r1 = self.recvMsg[0]
+                    #self.r2 = self.recvMsg[1]
+                    #self.r3 = self.recvMsg[2]
+
             except Exception as e:
                 print("reading error: ",e)
         self.ser.close()
@@ -128,14 +135,14 @@ def test():
     t.sleep(1)
     mega.sendCmd(s1=SEND_DATA_TRUE)
     t.sleep(0.1)
-    mega.sendCmd(s1=TO_SS1,s2=255,s3=255)
-    mega.sendCmd(s1=TO_SS1,s2=255,s3=255)
+    mega.sendCmd(s1=TO_SS1,s2=200,s3=200)
+    mega.sendCmd(s1=TO_SS1,s2=200,s3=200)
     t.sleep(1)
     mega.sendCmd(s1=TO_SS1,s2=50,s3=50)
     mega.sendCmd(s1=TO_SS1,s2=50,s3=50)
     t.sleep(1)
-    mega.sendCmd(s1=TO_SS1,s2=0,s3=0)
-    mega.sendCmd(s1=TO_SS1,s2=0,s3=0)
+    mega.sendCmd(s1=TO_SS1,s2=10,s3=10)
+    mega.sendCmd(s1=TO_SS1,s2=10,s3=10)
     t.sleep(0.5)
     mega.sendCmd(s1=SEND_DATA_FALSE)
     t.sleep(0.5)
