@@ -11,6 +11,8 @@
 #define SS1 53 // ss for nano 1
 #define SS2 40 // ss for nano 1
 
+#define LED_PWM 9
+
 #define msgSize 4
 
 union { // receive data structure
@@ -46,13 +48,12 @@ byte transferAndWait (const byte what) {
 
 void sendMsg (int ss) {
   digitalWrite(ss, LOW);
-  transferAndWait(0xAA); // primer valor enviado es el comando
-  transferAndWait(0xBB); // primer valor enviado es el comando
-  data.d1 = transferAndWait(ref.d1);
+  transferAndWait(0xAA); // comando para que el nano comience a rellenar buffer
+  data.d1 = transferAndWait(ref.d1); // primer valor enviado es el comando
   data.d2 = transferAndWait(ref.d2);
   data.d3 = transferAndWait(ref.d3);
   data.d4 = transferAndWait(ref.d4);
-  //data.d4 = transferAndWait(0xFF); // ultimo valor enviado para cerrar comunicacion
+  //data.d4 = transferAndWait(0xFF);
   delay(10);
   digitalWrite(ss, HIGH);
 } // end of sendMsg
@@ -64,6 +65,8 @@ void setup (void)
 {
   Serial.begin (115200);
   Serial.println ("SPI Mega Master");
+
+  pinMode(LED_PWM,OUTPUT);
 
   // SS = slave select, built in AVR output pin reference
   digitalWrite(SS1, HIGH);  // ensure SS stays high for now
@@ -77,12 +80,13 @@ void setup (void)
   //SPI.setClockDivider(SPI_CLOCK_DIV4);
   // use 2 Mbps decided by testing. 4 Mbps has too many bit errors over
   // jumper wires. Single-ended signals are not well suited for high-speed over wires
-  SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+/*
   ref.d1 = 0; // position control
   ref.d2 = 0;
   ref.d3 = 0;
   ref.d4 = 0;
-  sendMsg(SS1); // send first msg
+  sendMsg(SS1); // send first msg */
 }  // end of setup
 
 void loop (void)
@@ -93,22 +97,29 @@ void loop (void)
     Serial.print("in: ");
     ref.d1 = in; // position control
     ref.d2 = in+1;
-    ref.d3 = in-1;
-    ref.d4 = in+10;
+    ref.d3 = in;
+    ref.d4 = in-1;
     Serial.println(in);
     sendMsg(SS1);
+    analogWrite(LED_PWM,ref.d3);
   }
 
-  if (millis() - t_print > 1000) {
-    Serial.print("d1: ");
-    Serial.print(data.d1,DEC);
-    Serial.print("\td2: ");
-    Serial.print(data.d2,DEC);
-    Serial.print("\td3: ");
-    Serial.print(data.d3,DEC);
-    Serial.print("\td4: ");
-    Serial.println (data.d4,DEC);
+  if (millis() - t_print > 2000) {
+    printRow(ref.d1, ref.d2, ref.d3, ref.d4);
+    printRow(data.d1, data.d2, data.d3, data.d4);
+    Serial.println("---");
     t_print = millis();
   }
 
 }  // end of loop
+
+void printRow(int a, int b, int c, int d){
+  Serial.print("d1: ");
+  Serial.print(a,DEC);
+  Serial.print("\td2: ");
+  Serial.print(b,DEC);
+  Serial.print("\td3: ");
+  Serial.print(c,DEC);
+  Serial.print("\td4: ");
+  Serial.println (d,DEC);
+}
