@@ -43,9 +43,11 @@ byte transferAndWait (const byte what) {
     delayMicroseconds (10);
     return a;
 } // end of transferAndWait
+
 void sendMsg (int ss) {
   digitalWrite(ss, LOW);
   transferAndWait(0xAA); // primer valor enviado es el comando
+  transferAndWait(0xBB); // primer valor enviado es el comando
   data.d1 = transferAndWait(ref.d1);
   data.d2 = transferAndWait(ref.d2);
   data.d3 = transferAndWait(ref.d3);
@@ -53,10 +55,9 @@ void sendMsg (int ss) {
   //data.d4 = transferAndWait(0xFF); // ultimo valor enviado para cerrar comunicacion
   delay(10);
   digitalWrite(ss, HIGH);
-}
+} // end of sendMsg
 
-byte in = 0;
-
+int in = 0;
 unsigned long t_print = 0;
 
 void setup (void)
@@ -77,7 +78,11 @@ void setup (void)
   // use 2 Mbps decided by testing. 4 Mbps has too many bit errors over
   // jumper wires. Single-ended signals are not well suited for high-speed over wires
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
-
+  ref.d1 = 0; // position control
+  ref.d2 = 0;
+  ref.d3 = 0;
+  ref.d4 = 0;
+  sendMsg(SS1); // send first msg
 }  // end of setup
 
 void loop (void)
