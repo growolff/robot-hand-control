@@ -66,13 +66,7 @@ ISR (SPI_STC_vect)
       break;
     case 0xAA: // el primer mensaje ref.d1 llega aca
       buf[pos] = c; // rellena el buffer con los datos que lleguen a continuacion
-      SPDR = data.bytes[pos]; // devuelve 0 que no lee nadie
-      pos++;
-      //command = 0xBB;
-      break;
-    case 0XBB:
-      buf[pos] = c;
-      SPDR = data.bytes[pos-1];
+      SPDR = data.bytes[pos]; // devuelve estructura de datos
       pos++;
       break;
   }
