@@ -76,9 +76,10 @@ ISR (SPI_STC_vect)
   }
 }  // end of interrupt service routine (ISR) SPI_STC_vect
 
-void loop (void) {
-  buf[pos] = 0;
+void loop (void)
+{
   if (process_it) {
+    buf[pos] = 0;
     for (size_t i = 0; i < msgSize; i++)
     {
       ref.bytes[i] = buf[i];
