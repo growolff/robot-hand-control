@@ -49,11 +49,11 @@ byte transferAndWait (const byte what) {
 void sendMsg (int ss) {
   digitalWrite(ss, LOW);
   transferAndWait(0xAA); // comando para que el nano comience a rellenar buffer
-  data.d1 = transferAndWait(ref.d1); // primer valor enviado es el comando
-  data.d2 = transferAndWait(ref.d2);
-  data.d3 = transferAndWait(ref.d3);
-  data.d4 = transferAndWait(ref.d4);
-  //data.d4 = transferAndWait(0xFF);
+  byte a = transferAndWait(ref.d1); // primer valor enviado es el comando
+  data.d1 = transferAndWait(ref.d2);
+  data.d2 = transferAndWait(ref.d3);
+  data.d3 = transferAndWait(ref.d4);
+  data.d4 = transferAndWait(0xFF);
   delay(10);
   digitalWrite(ss, HIGH);
 } // end of sendMsg
