@@ -34,12 +34,12 @@ volatile boolean process_it;
 
 bool newMessage = false;
 
-int led_st = 0;
+int led_pwm = 0;
 
 void setup (void)
 {
   pinMode(LED_PIN, OUTPUT);
-  analogWrite(LED_PIN,led_st);
+  analogWrite(LED_PIN,led_pwm);
 
   // have to send on master in, *slave out*
   pinMode(MISO, OUTPUT);
@@ -81,6 +81,7 @@ void loop (void) {
     for (size_t i = 0; i < msgSize; i++)
     {
       ref.bytes[i] = buf[i];
+      data.bytes[i] = ref.bytes[i];
     }
     pos = 0;
     newMessage = true;
@@ -88,16 +89,8 @@ void loop (void) {
   }
 
   if (newMessage) {
-<<<<<<< HEAD
-    led_st = ref.d1;
-=======
-    led_st = ref.d2;
->>>>>>> serial_comm
-    data.d1 = ref.d1;
-    data.d2 = ref.d2;
-    data.d3 = ref.d3;
-    data.d4 = ref.d4;
-    analogWrite(LED_PIN, led_st);
+    led_pwm = ref.d3;
+    analogWrite(LED_PIN, led_pwm);
     newMessage = false;
   }
 

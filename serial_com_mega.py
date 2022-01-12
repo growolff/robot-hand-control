@@ -52,7 +52,7 @@ def main(argv):
 
 if __name__ == "__main__":
 
-    s = HandSerial(port='COM5',baudrate=500000)
+    s = HandSerial(port='COM5',baudrate=115200)
     s.startProcess()
     try:
         main(sys.argv[0:])

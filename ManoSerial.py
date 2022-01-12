@@ -21,6 +21,12 @@ class ManoSerial(object):
 
     # estructura para enviar datos
     sendStruct = struct.Struct('<BBBB')
+    '''
+        uint8 s1 -> slave select: SS1, SS2, SS3
+        uint8 s2 -> cmd: posRef, tensionRef
+        uint8 s3 -> ref motor 1
+        uint8 s4 -> ref motor 2
+    '''
 
     def __init__(self, port='COM5',baudrate=500000):
 
@@ -47,9 +53,6 @@ class ManoSerial(object):
         self.r2 = 0
         self.r3 = 0
 
-        self.buff = BytesIO()
-
-
     def __exit__(self, exc_type, exc_value, traceback):
         self.stopProcess()
 
@@ -71,8 +74,11 @@ class ManoSerial(object):
         self.running = True
         self.thread.start()
 
+    def to_hex(self,data):
+        return ":".join("{:02x}".format(c) for c in data)
+
     def serialize(self,buff):
-        buff.write(ManoSerial.sendStruct.pack(self.s1,self.s2,self.s3,self.s4))
+        return buff.write(ManoSerial.sendStruct.pack(self.s1,self.s2,self.s3,self.s4))
 
     def sendCmd(self,s1=0,s2=0,s3=0,s4=0):
         self.s1 = s1
@@ -80,9 +86,12 @@ class ManoSerial(object):
         self.s3 = s3
         self.s4 = s4
         #print(self.s1,self.s2,self.s3,self.s4)
-        self.serialize(self.buff)
-        packet = bytearray(self.buff.getvalue())
-        packet_str = array('B', packet).tobytes()
+        buff = BytesIO()
+        self.serialize(buff)
+        #print(self.to_hex(buff.getvalue()))
+        packet = bytearray(buff.getvalue())
+        #print(packet)
+        packet_str = bytes(packet)
         with self.serial_mutex:
             self.write_serial(packet_str)
 
@@ -90,10 +99,11 @@ class ManoSerial(object):
         """
         Write in the serial port.
         """
+        #print("Write Data: " + str(data))
         self.ser.flushInput()
         self.ser.flushOutput()
         self.ser.write(data)
-        #print("Write Data: " + str(data))
+
 
     def serialHandlerThread(self):
 
@@ -115,15 +125,20 @@ def to_hex(data):
     return ":".join("{:02x}".format(c) for c in data)
 
 def test():
+    t.sleep(1)
     mega.sendCmd(s1=SEND_DATA_TRUE)
-
-    mega.sendCmd(s1=TO_SS1,s2=250)
+    t.sleep(0.1)
+    mega.sendCmd(s1=TO_SS1,s2=255,s3=255)
+    mega.sendCmd(s1=TO_SS1,s2=255,s3=255)
     t.sleep(1)
-    mega.sendCmd(s1=TO_SS1,s2=100)
+    mega.sendCmd(s1=TO_SS1,s2=50,s3=50)
+    mega.sendCmd(s1=TO_SS1,s2=50,s3=50)
     t.sleep(1)
-    mega.sendCmd(s1=TO_SS1,s2=0)
-    t.sleep(1)
-
+    mega.sendCmd(s1=TO_SS1,s2=0,s3=0)
+    mega.sendCmd(s1=TO_SS1,s2=0,s3=0)
+    t.sleep(0.5)
+    mega.sendCmd(s1=SEND_DATA_FALSE)
+    t.sleep(0.5)
 
     mega.stopProcess()
 

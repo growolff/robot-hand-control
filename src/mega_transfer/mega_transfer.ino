@@ -69,17 +69,17 @@ void sendMsg (int ss) {
   data.d2 = transferAndWait(ref.d2);
   data.d3 = transferAndWait(ref.d3);
   data.d4 = transferAndWait(ref.d4);
-  //data.d4 = transferAndWait(0xFF); // ultimo valor enviado para cerrar comunicacion
+  //transferAndWait(0xFF); // ultimo valor enviado para cerrar comunicacion
   delay(10);
   digitalWrite(ss, HIGH);
 } // end of sendMsg
 
 // functions for serial comunication
 void readPacket() {
-  if (Serial.available() == msgSize) {
-    // do nothing and wait if serial buffer doesn't have enough bytes to read
+  if (Serial.available() >= msgSize) {
+    // read if serial buffer have all the bytes to read
     Serial.readBytes(ref.bytes, msgSize);
-    // read numBytes bytes from serial buffer and store them at a union called “RB”
+    // read numBytes bytes from serial buffer and store them at a union called “ref”
     process_it = true;
   }
 } // end of readPacket
@@ -98,7 +98,8 @@ void parseCommand() {
   uint8_t d3 = ref.d3;
   uint8_t d4 = ref.d4;
 
-  led_pwm = d2;
+  led_pwm = d3;
+
   switch (d1) {
     case TO_SS1:
       sendMsg(SS1);
@@ -113,11 +114,11 @@ void parseCommand() {
       led_pwm = d3;
       break;
   }
+  /*
   // clear data structure
   for (int i = 0; i < msgSize; i++) {
     ref.bytes[i] = 0;
-  }
-  Serial.flush();
+  }*/
 }
 
 void setup (void)
@@ -138,8 +139,8 @@ void setup (void)
   //SPI.setClockDivider(SPI_CLOCK_DIV4);
   // use 2 Mbps decided by testing. 4 Mbps has too many bit errors over
   // jumper wires. Single-ended signals are not well suited for high-speed over wires
-  SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
-  ref.d1 = 0; // position control
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+  ref.d1 = 0;
   ref.d2 = 0;
   ref.d3 = 0;
   ref.d4 = 0;
