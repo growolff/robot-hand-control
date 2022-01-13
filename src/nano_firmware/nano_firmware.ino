@@ -63,7 +63,7 @@ uint8_t m2_int = M2_HA;
 int16_t ref1 = 0;
 int16_t ref2 = 0;
 float kp = 3.0;
-float ki = 3.0;
+float ki = 2.0;
 
 unsigned long t_pos = 0;
 
@@ -148,6 +148,8 @@ void loop (void)
       case 0x01: // entrega referencias de posicion
         ref1 = ref.d3;
         ref2 = ref.d4;
+        data.pos0 = m1->getPosition();
+        data.pos1 = m2->getPosition();
         break;
     }
     analogWrite(LED_PIN, ref1);

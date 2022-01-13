@@ -11,11 +11,15 @@ from io import BytesIO
 
 import time as t
 
+#d1 commands
 TO_SS1 = 11
 TO_SS2 = 12
 SEND_DATA_TRUE = 40
 SEND_DATA_FALSE = 41
-SET_POS_REF = 1
+
+# d2 commands
+SET_POS_REF = 0x01
+GET_MOTOR_POS = 0xEE
 
 class ManoSerial(object):
 
@@ -120,6 +124,7 @@ class ManoSerial(object):
                 if self.ser.inWaiting():
                     msg = self.ser.read(recvStructLen)  # show the message as it is
                     self.recvMsg = unpack(self.recvFmt, msg)
+                    print(self.recvMsg)
                     #self.r1 = self.recvMsg[0]
                     #self.r2 = self.recvMsg[1]
                     #self.r3 = self.recvMsg[2]
@@ -135,15 +140,24 @@ def test():
     t.sleep(1)
     mega.sendCmd(s1=SEND_DATA_TRUE)
     t.sleep(0.1)
-    mega.sendCmd(s1=TO_SS1,s2=200,s3=200)
-    mega.sendCmd(s1=TO_SS1,s2=200,s3=200)
-    t.sleep(1)
-    mega.sendCmd(s1=TO_SS1,s2=50,s3=50)
-    mega.sendCmd(s1=TO_SS1,s2=50,s3=50)
-    t.sleep(1)
-    mega.sendCmd(s1=TO_SS1,s2=10,s3=10)
-    mega.sendCmd(s1=TO_SS1,s2=10,s3=10)
-    t.sleep(0.5)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=20)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=20)
+    t.sleep(2)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=52)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=52)
+    t.sleep(2)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=100)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=100)
+    t.sleep(2)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=120)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=120)
+    t.sleep(2)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=160)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=160)
+    t.sleep(2)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=0)
+    mega.sendCmd(s1=TO_SS1,s2=SET_POS_REF,s3=0)
+    t.sleep(2)
     mega.sendCmd(s1=SEND_DATA_FALSE)
     t.sleep(0.5)
 
