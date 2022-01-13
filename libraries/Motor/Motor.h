@@ -21,12 +21,17 @@ class ILim
   public:
     ILim(float ki, float Ts, float lim)
     {
-        this->Ts = Ts;
-        this->lim = lim;
-        a[0] = 1.0f;
-        a[1] = -1.0f;
-        b[0] = Ts*ki/2.0f;
-        b[1] = Ts*ki/2.0f;
+      this->Ts = Ts;
+      this->lim = lim;
+      a[0] = 1.0f;
+      a[1] = -1.0f;
+      b[0] = Ts*ki/2.0f;
+      b[1] = Ts*ki/2.0f;
+    }
+    setKi(float ki)
+    {
+      b[0] = Ts*ki/2.0f;
+      b[1] = Ts*ki/2.0f;
     }
 
     float update(float in)

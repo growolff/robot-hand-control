@@ -20,11 +20,14 @@ Motor::Motor(uint8_t ha, uint8_t hb, uint8_t dir, uint8_t en, uint8_t pwm)
   p_en = en;
   p_pwm = pwm;
 
-  iValue = new ILim(2.0,0.001f,255.0); // kI, Ts, Lim
-
   _hb = 0;
   _counter = 0;
   _pos_err = 0;
+
+  _pkp = 1.0;
+  _pki = 1.0;
+
+  iValue = new ILim(_pki,0.001f,255.0); // kI, Ts, Lim
 
   digitalWrite(en,HIGH);
 }
@@ -39,6 +42,8 @@ void Motor::setPositionPID(float kp, float ki, float kd)
   _pkp = kp;
   _pki = ki;
   _pkd = kd;
+
+  iValue->setKi(_pki);
 }
 
 int16_t Motor::getPosition()
