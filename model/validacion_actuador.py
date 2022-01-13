@@ -3,7 +3,7 @@
 Created on Thu Feb 18 16:02:37 2021
 @author: growolff
 
-calibracion del sensor de fuerza a101 de flexiforce
+comportamiento del actuador para diferentes cargas en la salida
 """
 
 import numpy as np
@@ -15,47 +15,44 @@ from matplotlib import pyplot as plt
 import numpy.polynomial.polynomial as poly
 mpl.rcParams['text.usetex'] = True
 
-# rf1 = 50k
-# rf2 = 100k
-# rf3 = 150k
+from actuator import TSActuatorGonMovil
+
+acGon = TSActuatorGonMovil(L=59,A=1.5,B=2.5,R=0.35/2)
 
 def main():
-    #plotCalibracion()
-    plotAjusteV()
+    plotActuador()
 
-def plotCalibracion():
-    m = [0, 100,  243, 462, 1000]
+def plotActuador():
+    # masas de prueba
+    m = [100,  250, 500, 1000]
+
     # resistencia en kohms
-    r1 = [1000, 335, 145, 47, 41]
-    r2 = [1000, 230, 63, 25.6, 13.5]
-    r3 = [1000, 165, 63.5, 37.4, 15.6]
-    # voltaje pasado por un 12bit ADC
-    # v1 = [20 150 300 890 1750];
-    # v2 = [20 430 1100 1950 3270];
-    # v3 = [20 500 1890 2900 3995];
-    v1 = [0, 0.02, 0.35, 0.97, 1.35]
-    v2 = [0, 0.1, 0.95, 2, 3.25]
-    v3 = [0, 0.3, 1.25, 2.4, 4.6]
+    aref = [0, 20, 52, 100, 120, 160]
 
-    P1 = poly.polyfit(m,v1,1)
-    P2 = poly.polyfit(m,v2,1)
-    P3 = poly.polyfit(m,v3,1)
+    # posicion real del motor
+    am4_1 = [0,19,53,99,121,142]
+    # desplazamiento del acutador medido en la imagen
+    xm4_1 = [0,0.56,4.3,18.2,34,41.7]
 
-    x = np.linspace(0,1000,10) # desde, hasta, cantidad
-    p1fit = poly.polyval(x,P1)
-    p2fit = poly.polyval(x,P2)
-    p3fit = poly.polyval(x,P3)
+    a_max_mot = 180 # en pasos de motor: 4 por vuelta
+    encoder_res = 4
+    #af = np.linspace(0,a_max,50) # min, max, n_items
+    a_mot = np.arange(0,a_max_mot,encoder_res) # min, max, step # en pasos de motor
+    a_turn = a_mot/encoder_res
+    a_rad = a_turn*2*np.pi
+    x = acGon.x(a_rad)
 
     fig1,ax1 = plt.subplots()
-    ax1.plot(m,v1, 'm+', label='Voltaje para Rf = 50 kOhm')
-    ax1.plot(m,v2, 'go', label='Voltaje para Rf = 100 kOhm')
-    ax1.plot(m,v3, 'bp', label='Voltaje para Rf = 150 kOhm')
+    ax1.plot(am4_1,xm4_1, 'm+', label='m = 100 [g]')
+    ax1.plot(a_rad,x, 'b--', label='modelo')
+    #ax1.plot(m,v2, 'go', label='Voltaje para Rf = 100 kOhm')
+    #ax1.plot(m,v3, 'bp', label='Voltaje para Rf = 150 kOhm')
 
-    ax1.plot(x,p1fit, 'm:', label='V ajustado para Rf = 50 kOhm')
-    ax1.plot(x,p2fit, 'g--', label='V ajustado para Rf = 100 kOhm')
-    ax1.plot(x,p3fit, 'b-.', label='V ajustado para Rf = 150 kOhm')
-    ax1.set_xlabel('Masa de prueba [gr]')
-    ax1.set_ylabel('Voltaje [V]')
+    #ax1.plot(x,p1fit, 'm:', label='V ajustado para Rf = 50 kOhm')
+    #ax1.plot(x,p2fit, 'g--', label='V ajustado para Rf = 100 kOhm')
+    #ax1.plot(x,p3fit, 'b-.', label='V ajustado para Rf = 150 kOhm')
+    ax1.set_xlabel("Angulo " + r'$\alpha/2\pi$ [vueltas]')
+    ax1.set_ylabel(r'Desplazamiento $x(\alpha)$ [mm]')
 
     ax1.grid()
     ax1.legend(loc=0,fontsize='large')
