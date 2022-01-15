@@ -9,17 +9,10 @@ from collections import namedtuple
 
 from io import BytesIO
 
+# control comands
+from variables import *
+
 import time as t
-
-#d1 commands
-TO_SS1 = 11
-TO_SS2 = 12
-SEND_DATA_TRUE = 40
-SEND_DATA_FALSE = 41
-
-# d2 commands
-SET_POS_REF = 0x01
-GET_MOTOR_POS = 0xEE
 
 class ManoSerial(object):
 

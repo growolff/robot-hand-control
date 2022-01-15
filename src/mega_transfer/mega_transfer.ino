@@ -1,10 +1,10 @@
 
 // commands for routing messages to nano
-#define TO_SS1 11
-#define TO_SS2 12
-#define SEND_DATA_TRUE 40
-#define SEND_DATA_FALSE 41
-#define SET_POS_REF 1
+#define TO_SS1          0xC1
+#define TO_SS2          0xC2
+#define TO_SS3          0xC3
+#define SEND_DATA_TRUE  0xD1
+#define SEND_DATA_FALSE 0xD0
 
 #include <SPI.h>
 /*
@@ -13,8 +13,9 @@
    miso 50
    mosi 51
 */
-#define SS1 53 // ss for nano 1
-#define SS2 40 // ss for nano 1
+#define SS1 40 // ss for nano 1
+#define SS2 53 // ss for nano 2
+#define SS3 41 // ss for nano 3
 
 #define SENSOR_0 A0
 int l_val = 0;        // value read from the sensor
@@ -68,7 +69,7 @@ unsigned long t_print = 0;
 // functions for spi communication
 byte transferAndWait (const byte what) {
     byte a = SPI.transfer (what);
-    delayMicroseconds (10);
+    delayMicroseconds (20);
     return a;
 } // end of transferAndWait
 
@@ -118,14 +119,14 @@ void parseCommand() {
     case TO_SS2:
       sendMsg(SS2);
       break;
+    case TO_SS3:
+      sendMsg(SS3);
+      break;
     case SEND_DATA_TRUE:
       sendData_st = true;
       break;
     case SEND_DATA_FALSE:
       sendData_st = false;
-      break;
-    case SET_POS_REF:
-      led_pwm = d3;
       break;
   }
   /*
@@ -141,8 +142,12 @@ void setup (void)
   //Serial.println ("Mega main router");
 
   // SS = slave select, built in AVR output pin reference
+  pinMode(SS1,OUTPUT);
+  pinMode(SS2,OUTPUT);
+  pinMode(SS3,OUTPUT);
   digitalWrite(SS1, HIGH);  // ensure SS stays high for now
   digitalWrite(SS2, HIGH);  // ensure SS stays high for now
+  digitalWrite(SS3, HIGH);  // ensure SS stays high for now
 
   // Put SCK, MOSI, SS pins into output mode
   // also put SCK, MOSI into LOW state, and SS into HIGH state.
@@ -153,7 +158,7 @@ void setup (void)
   //SPI.setClockDivider(SPI_CLOCK_DIV4);
   // use 2 Mbps decided by testing. 4 Mbps has too many bit errors over
   // jumper wires. Single-ended signals are not well suited for high-speed over wires
-  SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
   //for (size_t i = 0; i < msgSize; i++) { ref.bytes[i] = 0 }
   //sendMsg(SS1); // send first msg
 
@@ -176,7 +181,7 @@ void loop (void)
     digitalWrite(LED_BUILTIN, led_st);
     led_st = !led_st;
     if(sendData_st == true){
-      data.sensor = readForceSensor(SENSOR_0);
+      //data.sensor = readForceSensor(SENSOR_0);
       writePacket();
     }
     t_write = millis();

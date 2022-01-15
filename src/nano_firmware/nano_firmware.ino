@@ -16,6 +16,15 @@
 #define LED_PIN 9
 #define msgSize 6
 
+#define SET_POS_REF     0x01
+#define GET_MOTOR_POS   0xEE
+#define ENABLE_MOTOR_F  0xAF
+#define ENABLE_MOTOR_E  0xAE
+#define DISABLE_MOTOR_F 0xBF
+#define DISABLE_MOTOR_E 0xBE
+
+#define LED_DEBUG       0xCC
+
 union { // data out structure
   char bytes [msgSize];
   struct {
@@ -77,10 +86,12 @@ void m2_isr() {
 
 void setup (void)
 {
+  // motor 1 flector
   m1 = new Motor(M1_HA, M1_HB, M1_DIR, M1_EN, M1_PWM);
   m1->setupInterruptHandler(m1_isr);
   m1->setPositionPID(kp, ki, 0);
 
+  // motor 2 extensor
   m2 = new Motor(M2_HA, M2_HB, M2_DIR, M2_EN, M2_PWM);
   m2->setupInterruptHandler(m2_isr);
   m2->setPositionPID(kp, ki, 0);
@@ -141,18 +152,32 @@ void loop (void)
 
   if (newMessage) {
     switch (ref.d2) {
-      case 0xEE: // pide info de los sensores
+      case GET_MOTOR_POS: // pide info de los sensores
         data.pos0 = m1->getPosition();
         data.pos1 = m2->getPosition();
         break;
-      case 0x01: // entrega referencias de posicion
+      case SET_POS_REF: // entrega referencias de posicion
         ref1 = ref.d3;
         ref2 = ref.d4;
         data.pos0 = m1->getPosition();
         data.pos1 = m2->getPosition();
         break;
+      case ENABLE_MOTOR_F: // enable motor F
+        m1->enable();
+        break;
+      case ENABLE_MOTOR_E: // enable motor E
+        m2->enable();
+        break;
+      case DISABLE_MOTOR_F: // enable motor F
+        m1->disable();
+        break;
+      case DISABLE_MOTOR_E: // enable motor E
+        m2->disable();
+        break;
+      case LED_DEBUG:
+        led_pwm = ref.d3;
     }
-    analogWrite(LED_PIN, ref1);
+    analogWrite(LED_PIN, led_pwm);
     newMessage = false;
   }
 
