@@ -78,7 +78,7 @@ class TSActuatorGonMovil():
         B: radio del eje rotatorio B en mm
         R: radio cuerda trenzada, cuerda usada es 0.35 mm diametro
     '''
-    def __init__(self, L=40,R=0.175,A=1.5,B=2):
+    def __init__(self, L=59,R=0.175,A=1.5,B=2.5):
         self.A = A # pivot rad
         self.B = B # pivot rad
         self.L = L # fixed distance between string pivots
@@ -102,3 +102,10 @@ class TSActuatorGonMovil():
         num = np.sqrt(self.L**2-(self.A+self.B+self.R*alpha)**2)
         den = self.R*(self.A+self.B+self.R*alpha)
         return num/den
+
+    def getAlphaAntagonista(self,Xmax,alpha):
+        aux = self.L0 - Xmax + self.x(alpha)
+        return (np.sqrt(self.L**2 - aux**2) - self.A - self.B)/self.R
+
+    def toRad(self,alpha):
+        return alpha/4 * 2 * np.pi
