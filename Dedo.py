@@ -55,15 +55,6 @@ class Dedo(object):
         self.mano.sendCmd(s1=self.ss,s2=SET_POS_REF,s3=0,s4=self.max_me_angle)
     #        t.sleep(self.dbc)
 
-    def debug_led(self):
-        self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=255,s4=0)
-        t.sleep(0.5)
-        self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=150,s4=0)
-        t.sleep(0.5)
-        self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=50,s4=0)
-        t.sleep(0.5)
-        self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=0,s4=0)
-
     def close(self):
         print("Close " + str(self.name))
         #for i in range(0,self.max_me_angle,self.step):
@@ -73,6 +64,15 @@ class Dedo(object):
         #    print(i,aRad)
         self.mano.sendCmd(s1=self.ss,s2=SET_POS_REF,s3=self.max_mf_angle,s4=0)
         #    t.sleep(self.dbc)
+
+    def debug_led(self):
+        self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=255,s4=0)
+        t.sleep(0.5)
+        self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=150,s4=0)
+        t.sleep(0.5)
+        self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=50,s4=0)
+        t.sleep(0.5)
+        self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=0,s4=0)
 
 
 def main():

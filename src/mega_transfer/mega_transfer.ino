@@ -69,7 +69,7 @@ unsigned long t_print = 0;
 // functions for spi communication
 byte transferAndWait (const byte what) {
     byte a = SPI.transfer (what);
-    delayMicroseconds (20);
+    delayMicroseconds (10);
     return a;
 } // end of transferAndWait
 
@@ -83,7 +83,7 @@ void sendMsg (int ss) {
   data.d4 = transferAndWait(ref.d5);
   data.d5 = transferAndWait(ref.d6);
   data.d6 = transferAndWait(0xFF);
-  delay(10);
+  delay(5);
   digitalWrite(ss, HIGH);
 } // end of sendMsg
 
