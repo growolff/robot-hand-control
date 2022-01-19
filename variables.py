@@ -11,7 +11,9 @@ SEND_DATA_TRUE = 0xD1
 SEND_DATA_FALSE = 0xD0
 
 # d2 commands for nano, must be defined in nano_firmware.ino
+SET_CONTROL = 0x83
 SET_POS_REF = 0x01
+SET_TENS_REF = 0x02
 GET_MOTOR_POS = 0xEE
 ENABLE_MOTOR_F = 0xAF
 ENABLE_MOTOR_E = 0xAE
@@ -19,3 +21,7 @@ DISABLE_MOTOR_F = 0xBF
 DISABLE_MOTOR_E = 0xBE
 
 LED_DEBUG = 0xCC
+
+#d5 commands fot control selection
+POSITION_CONTROL = 0xDA
+TENSION_CONTROL = 0xDB

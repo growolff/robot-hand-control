@@ -7,9 +7,11 @@ import time as t
 
 class Dedo(object):
 
-    def __init__(self, mano, name, ss, max_me, max_mf):
-        self.ss = ss
+    def __init__(self, mano, ss, name, max_me, max_mf):
         self.mano = mano
+        self.ss = ss
+        self.name = name
+
         self.ac = TSActuatorGonMovil()
 
         # flector and extensor actuator limits in radians
@@ -17,12 +19,19 @@ class Dedo(object):
         self.max_me_angle = max_me
 
         # delay between commands
-        self.dbc = 0.05
+        self.dbc = 0.1
 
         # steps for position control ref
-        self.step = 10
+        self.stepClose = 4
+        self.stepOpen = 5
 
-        self.name = name
+    def setTensionControl(self):
+        print("Set tension control " + str(self.name))
+        self.mano.sendCmd(s1=self.ss,s2=SET_CONTROL,s5=TENSION_CONTROL)
+
+    def setPositionControl(self):
+        print("Set position control " + str(self.name))
+        self.mano.sendCmd(s1=self.ss,s2=SET_CONTROL,s5=POSITION_CONTROL)
 
     def enableME(self):
         self.mano.sendCmd(s1=self.ss,s2=ENABLE_MOTOR_E)
@@ -33,37 +42,48 @@ class Dedo(object):
     def enable(self):
         print("Enable " + str(self.name))
         self.enableME()
+        t.sleep(self.dbc)
         self.enableMF()
 
     def disableME(self):
-        self.mano.sendCmd(s1=self.ss,s2=ENABLE_MOTOR_E)
+        self.mano.sendCmd(s1=self.ss,s2=DISABLE_MOTOR_E)
 
     def disableMF(self):
-        self.mano.sendCmd(s1=self.ss,s2=ENABLE_MOTOR_F)
+        self.mano.sendCmd(s1=self.ss,s2=DISABLE_MOTOR_F)
 
     def disable(self):
         print("Disable " + str(self.name))
         self.disableME()
+        t.sleep(self.dbc)
         self.disableMF()
 
     def relax(self):
+        self.setPositionControl()
+        print("Relax " + str(self.name))
+        t.sleep(self.dbc)
         self.mano.sendCmd(s1=self.ss,s2=SET_POS_REF,s3=0,s4=0)
 
     def open(self):
+        self.setPositionControl()
         print("Open " + str(self.name))
-    #    for i in range(0,self.max_me_angle,self.step):
-        self.mano.sendCmd(s1=self.ss,s2=SET_POS_REF,s3=0,s4=self.max_me_angle)
-    #        t.sleep(self.dbc)
+        th = np.linspace(0,self.max_me_angle,self.stepOpen)
+        for i in range(len(th)):
+            self.mano.sendCmd(s1=self.ss,s2=SET_POS_REF,s4=int(th[i]))
+            t.sleep(self.dbc)
+
 
     def close(self):
         print("Close " + str(self.name))
-        #for i in range(0,self.max_me_angle,self.step):
-        #    aRad = self.ac.toRad(i)
-        #    ## revisar este metodo :)
-        #    alphaE = self.ac.getAlphaAntagonista(self.max_me_angle,aRad)
-        #    print(i,aRad)
-        self.mano.sendCmd(s1=self.ss,s2=SET_POS_REF,s3=self.max_mf_angle,s4=0)
-        #    t.sleep(self.dbc)
+        thF = np.linspace(0,self.max_me_angle,self.stepClose)
+        for i in range(len(thF)):
+            thE = int(thF[len(thF)-i-1])
+            self.mano.sendCmd(s1=self.ss,s2=SET_POS_REF,s3=int(thF[i]),s4=thE)
+            t.sleep(self.dbc)
+
+    def closeControlado(self,tens_ref):
+        self.setTensionControl()
+        print("Close control " + str(self.name))
+        self.mano.sendCmd(s1=self.ss,s2=SET_TENS_REF,s3=tens_ref,s4=0)
 
     def debug_led(self):
         self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=255,s4=0)
@@ -77,9 +97,9 @@ class Dedo(object):
 
 def main():
     mano_ser = ManoSerial('COM4',500000)
-    indice = Dedo(mano_ser, "INDICE", TO_SS3, max_mf=110, max_me=110)
-    pulgar = Dedo(mano_ser, "PULGAR", TO_SS2, max_mf=90, max_me=90)
-    medio = Dedo(mano_ser, "MEDIO", TO_SS1, max_mf=110, max_me=110)
+    indice = Dedo(mano_ser, "INDICE", TO_SS3, max_mf=80, max_me=110)
+    pulgar = Dedo(mano_ser, "PULGAR", TO_SS2, max_mf=70, max_me=90)
+    medio = Dedo(mano_ser, "MEDIO", TO_SS1, max_mf=80, max_me=110)
     t.sleep(1)
 
     #dedo1.debug_led()
@@ -89,27 +109,28 @@ def main():
 
 
     pulgar.enable()
-    t.sleep(0.1)
+    t.sleep(0.08)
     pulgar.open()
-    t.sleep(0.1)
+    t.sleep(0.08)
     indice.enable()
-    t.sleep(0.1)
+    t.sleep(0.08)
     indice.open()
-    t.sleep(0.1)
+    t.sleep(0.08)
     medio.enable()
-    t.sleep(0.1)
+    t.sleep(0.08)
     medio.open()
 
 
     t.sleep(5)
-    pulgar.close()
+    medio.close()
     t.sleep(0.05)
     indice.close()
     t.sleep(0.05)
-    medio.close()
+    pulgar.close()
     t.sleep(0.05)
 
-    t.sleep(5)
+    t.sleep(10)
+
     pulgar.open()
     t.sleep(0.05)
     indice.open()
@@ -123,7 +144,7 @@ def main():
     t.sleep(0.05)
     medio.relax()
 
-    t.sleep(1)
+    t.sleep(5)
     pulgar.disable()
     t.sleep(0.05)
     indice.disable()
