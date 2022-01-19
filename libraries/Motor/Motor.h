@@ -9,6 +9,8 @@
 
 #include "Arduino.h"
 
+#define CTRL_MAX_VAL 255
+
 class ILim
 {
   public:
@@ -58,9 +60,13 @@ class Motor
 
     void setInitPosition(int16_t pos);
     void setPositionPID(float kp, float ki, float kd);
+    void setTensionPID(float kp, float ki, float kd);
     void moveToPosition(int16_t ref);
+    void moveToTension(int16_t ref, int16_t sensor_mes);
 
     int16_t getPosition();
+    void enable();
+    void disable();
 
 
   private:
@@ -75,6 +81,9 @@ class Motor
     int16_t _pos_err;
     int16_t _counter;
     int _hb;
+
+    float _tkp,_tki,_tkd;
+    int16_t _tens_err;
 };
 
 #endif
