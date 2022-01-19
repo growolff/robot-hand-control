@@ -15,14 +15,7 @@
 */
 #define SS1 40 // ss for nano 1
 #define SS2 53 // ss for nano 2
-#define SS3 41 // ss for nano 3
-
-#define SENSOR_0 A0
-int l_val = 0;        // value read from the sensor
-int r_val = 0;
-float l_force = 0;
-float r_force = 0;
-float c_factor = 0.2908;
+#define SS3 38 // ss for nano 3
 
 #define LED_PWM 9
 #define WRITE_RATE_HZ 10
@@ -83,7 +76,7 @@ void sendMsg (int ss) {
   data.d4 = transferAndWait(ref.d5);
   data.d5 = transferAndWait(ref.d6);
   data.d6 = transferAndWait(0xFF);
-  delay(5);
+  delay(10);
   digitalWrite(ss, HIGH);
 } // end of sendMsg
 
@@ -181,43 +174,8 @@ void loop (void)
     digitalWrite(LED_BUILTIN, led_st);
     led_st = !led_st;
     if(sendData_st == true){
-      //data.sensor = readForceSensor(SENSOR_0);
       writePacket();
     }
     t_write = millis();
   }
-  //Serial.println(readForceSensor(SENSOR_0));
 }  // end of loop
-
-uint16_t readForceSensor(int sensor){
-  // read ADC values
-  l_val = smooth(sensor);
-  l_force = l_val * 5.0/1024.0*c_factor;
-  // using the ecuation for equilibrum state
-  float Df = 0.017; // distance in meters
-  float de = 0.0085;
-  float alpha = atan(0.003/de) * 3.14159 / 180; // in radians
-  float beta = atan(0.003/Df) * 3.14159 / 180; // in radians
-  float l_tens = Df*l_force*cos(alpha) / (de * cos(beta));
-
-  return l_tens*1000;
-}
-
-int smooth(const int sensor){
-  int i;
-  int value = 0;
-  int numReadings = 10;
-
-  for (i = 0; i < numReadings; i++){
-    // Read light sensor data.
-    value = value + analogRead(sensor);
-
-    // 1ms pause adds more stability between reads.
-    delay(1);
-  }
-  // Take an average of all the readings.
-  value = value / numReadings;
-  // Scale to 8 bits (0 - 255).
-  // value = value / 4;
-  return value;
-}

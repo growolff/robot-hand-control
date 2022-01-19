@@ -15,13 +15,19 @@
 
 #define LED_PIN 9
 #define msgSize 6
+#define FORCE_PIN A6
 
+#define SET_CONTROL     0x83
 #define SET_POS_REF     0x01
+#define SET_TENS_REF    0x02
 #define GET_MOTOR_POS   0xEE
 #define ENABLE_MOTOR_F  0xAF
 #define ENABLE_MOTOR_E  0xAE
 #define DISABLE_MOTOR_F 0xBF
 #define DISABLE_MOTOR_E 0xBE
+
+#define POSITION_CONTROL 0xDA
+#define TENSION_CONTROL 0xDB
 
 #define LED_DEBUG       0xCC
 
@@ -74,7 +80,32 @@ int16_t ref2 = 0;
 float kp = 3.0;
 float ki = 2.0;
 
+float tkp = 1.2;
+
+int16_t t_ref = 0;
+
 unsigned long t_pos = 0;
+unsigned long t_tens = 0;
+
+#define M1_MAX_POS 160
+#define M2_MAX_POS 160
+
+byte control_mode = POSITION_CONTROL;
+
+float tension;
+uint16_t adcReading1 = 0;
+static int32_t avg1 = 0;
+int sensor1 = 0;
+
+double K = 0.011159057404310219;
+
+#define DSP_EMA_I32_ALPHA(x) ( (uint16_t)(x * 65535) )
+int32_t dsp_ema_i32(int32_t in, int32_t average, uint16_t alpha) {
+  int64_t tmp0;
+  tmp0 = (int64_t)in * (int64_t)(alpha) + (int64_t)average * (int64_t)(65536 - alpha);
+  return (int32_t)((tmp0 + 32768) / 65536);
+}
+
 
 void m1_isr() {
   m1->readCounter();
@@ -90,14 +121,13 @@ void setup (void)
   m1 = new Motor(M1_HA, M1_HB, M1_DIR, M1_EN, M1_PWM);
   m1->setupInterruptHandler(m1_isr);
   m1->setPositionPID(kp, ki, 0);
+  m1->setTensionPID(tkp,0,0);
 
   // motor 2 extensor
   m2 = new Motor(M2_HA, M2_HB, M2_DIR, M2_EN, M2_PWM);
   m2->setupInterruptHandler(m2_isr);
   m2->setPositionPID(kp, ki, 0);
   //m2->setInitPosition(0);
-
-  t_pos = micros();
 
   pinMode(LED_PIN, OUTPUT);
   analogWrite(LED_PIN, led_pwm);
@@ -111,6 +141,9 @@ void setup (void)
 
   // turn on interrupts
   SPCR |= _BV(SPIE);
+
+  t_pos = micros();
+  t_tens = millis();
 
 }  // end of setup
 
@@ -152,16 +185,23 @@ void loop (void)
 
   if (newMessage) {
     switch (ref.d2) {
+      case SET_CONTROL:
+        control_mode = ref.d5;
       case GET_MOTOR_POS: // pide info de los sensores
         data.pos0 = m1->getPosition();
         data.pos1 = m2->getPosition();
+        data.sensor = (int16_t)tension;
         break;
       case SET_POS_REF: // entrega referencias de posicion
         ref1 = ref.d3;
         ref2 = ref.d4;
         data.pos0 = m1->getPosition();
         data.pos1 = m2->getPosition();
+        data.sensor = (int16_t)tension;
         break;
+      case SET_TENS_REF:
+        t_ref = ref.d3;
+        ref2 = ref.d4;
       case ENABLE_MOTOR_F: // enable motor F
         m1->enable();
         break;
@@ -181,9 +221,24 @@ void loop (void)
     newMessage = false;
   }
 
+  adcReading1 = analogRead(FORCE_PIN);
+  avg1 = dsp_ema_i32( (int32_t)adcReading1 << 21, avg1, DSP_EMA_I32_ALPHA(0.2));
+  sensor1 = byte(avg1 >> 23 ); // shift down to single byte
+
+  if (millis() - t_tens > 10){  // 100Hz loop
+      tension = K * sensor1;
+      if(control_mode == TENSION_CONTROL){
+          m1->moveToTension(t_ref,sensor1);
+          m2->moveToPosition(ref2 > M2_MAX_POS ? M2_MAX_POS : ref2);
+      }
+      t_tens = millis();
+  }
+
   if (micros() - t_pos > 1000) { // 1kHz loop
-      m1->moveToPosition(ref1);
-      m2->moveToPosition(ref2);
+      if(control_mode != TENSION_CONTROL){
+          m1->moveToPosition(ref1 > M1_MAX_POS ? M1_MAX_POS : ref1);
+          m2->moveToPosition(ref2 > M2_MAX_POS ? M2_MAX_POS : ref2);
+      }
       t_pos = micros();
   }
   if (digitalRead (SS) == HIGH) {
