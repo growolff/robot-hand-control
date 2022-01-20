@@ -28,8 +28,10 @@ Motor::Motor(uint8_t ha, uint8_t hb, uint8_t dir, uint8_t en, uint8_t pwm)
   _pki = 1.0;
 
   _tkp = 1.0;
+  _tki = 1.0;
 
   iValue = new ILim(_pki,0.001f,255.0); // kI, Ts, Lim
+  iValueTension = new ILim(_tki,0.01f,255.0); // kI, Ts, Lim
 
   digitalWrite(p_en,LOW);
 }
@@ -64,7 +66,7 @@ void Motor::setTensionPID(float kp, float ki, float kd)
   _tki = ki;
   _tkd = kd;
 
-  //iValue->setKi(_pki);
+  iValueTension->setKi(_pki);
 }
 
 int16_t Motor::getPosition()
@@ -97,7 +99,7 @@ void Motor::moveToPosition(int16_t ref)
 void Motor::moveToTension(int16_t ref, int16_t sensor_mes)
 {
     _tens_err = ref - sensor_mes;
-    int16_t tens_out =  (int16_t) _tens_err * _tkp;
+    int16_t tens_out =  (int16_t) _tens_err * _tkp + iValueTension->update(_tens_err);
 
     // limita la referencia de posicion al maximo o minimo que se permita
     tens_out = tens_out > CTRL_MAX_VAL ? CTRL_MAX_VAL : (tens_out < -CTRL_MAX_VAL ? -CTRL_MAX_VAL : tens_out);

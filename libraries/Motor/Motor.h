@@ -82,6 +82,7 @@ class Motor
     int16_t _counter;
     int _hb;
 
+    ILim* iValueTension;
     float _tkp,_tki,_tkd;
     int16_t _tens_err;
 };

@@ -81,6 +81,7 @@ float kp = 3.0;
 float ki = 2.0;
 
 float tkp = 1.2;
+float tki = 0.5;
 
 int16_t t_ref = 0;
 
@@ -121,7 +122,7 @@ void setup (void)
   m1 = new Motor(M1_HA, M1_HB, M1_DIR, M1_EN, M1_PWM);
   m1->setupInterruptHandler(m1_isr);
   m1->setPositionPID(kp, ki, 0);
-  m1->setTensionPID(tkp,0,0);
+  m1->setTensionPID(tkp,tki,0);
 
   // motor 2 extensor
   m2 = new Motor(M2_HA, M2_HB, M2_DIR, M2_EN, M2_PWM);
