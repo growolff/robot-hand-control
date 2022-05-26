@@ -16,17 +16,16 @@ import time as t
 
 class ManoSerial(object):
 
-    # estructura para enviar datos
-    sendStruct = struct.Struct('<BBBBBB')
-    '''
-        uint8 s1 -> slave select: SS1, SS2, SS3
-        uint8 s2 -> cmd: posRef, tensionRef
-        uint8 s3 -> ref motor 1
-        uint8 s4 -> ref motor 2
-    '''
+    def __init__(self, port='/dev/ttyACM0',baudrate=500000):
 
-    def __init__(self, port='COM5',baudrate=500000):
-
+        # estructura para enviar datos
+        self.sendStruct = struct.Struct('<BBBBBB')
+        '''
+            uint8 s1 -> slave select: SS1, SS2, SS3
+            uint8 s2 -> cmd: posRef, tensionRef
+            uint8 s3 -> ref motor 1
+            uint8 s4 -> ref motor 2
+        '''
         self.device = port
         self.baudrate = baudrate
         self.running = False
@@ -77,7 +76,7 @@ class ManoSerial(object):
         return ":".join("{:02x}".format(c) for c in data)
 
     def serialize(self,buff):
-        return buff.write(ManoSerial.sendStruct.pack(self.s1,self.s2,self.s3,self.s4,self.s5,self.s6))
+        return buff.write(self.sendStruct.pack(self.s1,self.s2,self.s3,self.s4,self.s5,self.s6))
 
     def sendCmd(self,s1=0,s2=0,s3=0,s4=0,s5=0,s6=0):
         self.s1 = s1
@@ -86,7 +85,7 @@ class ManoSerial(object):
         self.s4 = s4
         self.s5 = s5
         self.s6 = s6
-        #print(self.s1,self.s2,self.s3,self.s4)
+        print(self.s1,self.s2,self.s3,self.s4)
         buff = BytesIO()
         self.serialize(buff)
         #print(self.to_hex(buff.getvalue()))
