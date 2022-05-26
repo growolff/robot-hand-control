@@ -7,8 +7,8 @@ import time as t
 
 class Dedo(object):
 
-    def __init__(self, mano, ss, name, max_me, max_mf):
-        self.mano = mano
+    def __init__(self, serial, ss, name, max_me, max_mf):
+        self.mano = serial
         self.ss = ss
         self.name = name
 
@@ -23,7 +23,7 @@ class Dedo(object):
 
         # steps for position control ref
         self.stepClose = 4
-        self.stepOpen = 5
+        self.stepOpen = 4
 
     def setTensionControl(self):
         print("Set tension control " + str(self.name))
@@ -76,14 +76,53 @@ class Dedo(object):
         print("Close " + str(self.name))
         thF = np.linspace(0,self.max_me_angle,self.stepClose)
         for i in range(len(thF)):
-            thE = int(thF[len(thF)-i-1])
+            thE = int(self.alphaAntagonista(thF[i]))
             self.mano.sendCmd(s1=self.ss,s2=SET_POS_REF,s3=int(thF[i]),s4=thE)
             t.sleep(self.dbc)
 
     def closeControlado(self,tens_ref):
         self.setTensionControl()
         print("Close control " + str(self.name))
-        self.mano.sendCmd(s1=self.ss,s2=SET_TENS_REF,s3=tens_ref,s4=0)
+        me_close = np.linspace(self.max_me_angle,0,4)
+        for i in range(len(me_close)):
+            self.mano.sendCmd(s1=self.ss,s2=SET_TENS_REF,s3=tens_ref,s4=int(me_close[i]))
+            t.sleep(0.3)
+        #self.mano.sendCmd(s1=self.ss,s2=SET_TENS_REF,s3=tens_ref,s4=0) # Extensor 5 vueltas
+
+    def apretar(self,tens_ref):
+        self.setTensionControl()
+        print("Apretar " + str(self.name))
+        self.mano.sendCmd(s1=self.ss,s2=SET_TENS_REF,s3=tens_ref,s4=0) # Extensor 5 vueltas
+
+    def mantener(self,tens_ref,pos_ref):
+        self.setTensionControl()
+        print("mantener" + str(self.name))
+        self.mano.sendCmd(s1=self.ss,s2=SET_TENS_REF,s3=tens_ref,s4=pos_ref) # Extensor 5 vueltas
+
+    def sweep(self,tens_ref):
+        self.setTensionControl()
+        print("sweep" + str(self.name))
+        me_close = np.linspace(self.max_me_angle,0,10)
+        me_open = np.linspace(0,self.max_me_angle,10)
+        for i in range(len(me_close)):
+            print(me_close[i])
+            self.mano.sendCmd(s1=self.ss,s2=SET_TENS_REF,s3=tens_ref,s4=int(me_close[i]))
+            t.sleep(0.1)
+
+        t.sleep(1)
+
+        for i in range(len(me_open)):
+            print(me_open[i])
+            self.mano.sendCmd(s1=self.ss,s2=SET_TENS_REF,s3=tens_ref,s4=int(me_open[i]))
+            t.sleep(0.2)
+
+
+    def alphaAntagonista(self,theta):
+        a = 65
+        b = -0.09058717985726175
+        c = 4.245916345362804e-05
+        d = -7.200294474934631e-06
+        return  a + theta*b + theta**2 * c + theta**3 * d
 
     def debug_led(self):
         self.mano.sendCmd(s1=self.ss,s2=LED_DEBUG,s3=255,s4=0)
